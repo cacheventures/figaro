@@ -12,6 +12,7 @@ Gem::Specification.new do |gem|
   gem.license     = "MIT"
 
   gem.add_dependency "thor", "~> 0.14"
+  gem.add_dependency "hiera-eyaml"
 
   gem.add_development_dependency "bundler", "~> 1.7"
   gem.add_development_dependency "rake", "~> 10.4"

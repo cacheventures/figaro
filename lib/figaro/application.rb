@@ -1,5 +1,6 @@
 require "erb"
 require "yaml"
+require 'open3'
 
 module Figaro
   class Application
@@ -73,7 +74,14 @@ module Figaro
       non_string_configuration!(value) unless value.is_a?(String) || value.nil?
 
       ::ENV[key.to_s] = value.nil? ? nil : value.to_s
-      ::ENV[FIGARO_ENV_PREFIX + key.to_s] = value.nil? ? nil: value.to_s
+      if value =~ /^ENC\[/
+        decrypted_value = Open3.popen2("eyaml", "decrypt", "-s", value) do |i, o, t|
+          o.read.chomp
+        end
+        ::ENV[FIGARO_ENV_PREFIX + key.to_s] = decrypted_value.nil? ? nil : decrypted_value.to_s
+      else
+        ::ENV[FIGARO_ENV_PREFIX + key.to_s] = value.nil? ? nil : value.to_s
+      end
     end
 
     def skip?(key)
