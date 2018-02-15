@@ -73,13 +73,14 @@ module Figaro
       non_string_configuration!(key) unless key.is_a?(String)
       non_string_configuration!(value) unless value.is_a?(String) || value.nil?
 
-      ::ENV[key.to_s] = value.nil? ? nil : value.to_s
       if value =~ /^ENC\[/
         decrypted_value = Open3.popen2("eyaml", "decrypt", "-s", value) do |i, o, t|
           o.read.chomp
         end
+        ::ENV[key.to_s] = decrypted_value.nil? ? nil : decrypted_value.to_s
         ::ENV[FIGARO_ENV_PREFIX + key.to_s] = decrypted_value.nil? ? nil : decrypted_value.to_s
       else
+        ::ENV[key.to_s] = value.nil? ? nil : value.to_s
         ::ENV[FIGARO_ENV_PREFIX + key.to_s] = value.nil? ? nil : value.to_s
       end
     end
