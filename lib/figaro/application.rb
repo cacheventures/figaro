@@ -74,8 +74,14 @@ module Figaro
       non_string_configuration!(value) unless value.is_a?(String) || value.nil?
 
       if value =~ /^ENC\[/
-        decrypted_value = Open3.popen2("eyaml", "decrypt", "-s", value) do |i, o, t|
-          o.read.chomp
+        decrypted_value, error_text = Open3.popen3(
+          "eyaml", "decrypt", "-s", value
+        ) do |i, o, e, t|
+          [o.read.chomp, e.read.chomp]
+        end
+        if error_text.present?
+          puts "error from key: #{key}"
+          puts error_text
         end
         ::ENV[key.to_s] = decrypted_value.nil? ? nil : decrypted_value.to_s
         ::ENV[FIGARO_ENV_PREFIX + key.to_s] = decrypted_value.nil? ? nil : decrypted_value.to_s
